@@ -1,0 +1,31 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ticketdesk
+      POSTGRES_USER: ticketdesk
+      POSTGRES_PASSWORD: ticketdesk
+    ports:
+      - "5432:5432"
+    volumes:
+      - ticketdesk_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ticketdesk"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/ticketdesk
+      SPRING_DATASOURCE_USERNAME: ticketdesk
+      SPRING_DATASOURCE_PASSWORD: ticketdesk
+    ports:
+      - "8080:8080"
+
+volumes:
+  ticketdesk_pgdata:
